@@ -24,6 +24,7 @@ const defaultMessages = [
 let messages = loadMessages();
 
 clearMessagesFromUrl();
+clearMessagesByNumberFromUrl();
 nameInput.value = localStorage.getItem(nameKey) || "";
 updateComposerState();
 renderMessages();
@@ -100,6 +101,19 @@ function clearMessagesFromUrl() {
   }
 
   messages = [];
+  saveMessages();
+  window.history.replaceState({}, "", window.location.pathname);
+}
+
+function clearMessagesByNumberFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const number = params.get("clearNumber");
+
+  if (!number) {
+    return;
+  }
+
+  messages = messages.filter((message) => !message.author.startsWith(`${number}號：`));
   saveMessages();
   window.history.replaceState({}, "", window.location.pathname);
 }

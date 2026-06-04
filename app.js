@@ -7,7 +7,6 @@ const input = document.querySelector("#messageInput");
 const nameInput = document.querySelector("#displayName");
 const nameHint = document.querySelector("#nameHint");
 const saveNameButton = document.querySelector("#saveName");
-const clearButton = document.querySelector("#clearMessages");
 const messageCount = document.querySelector("#messageCount");
 const sendButton = document.querySelector(".send-button");
 const template = document.querySelector("#messageTemplate");
@@ -82,18 +81,6 @@ saveNameButton.addEventListener("click", () => {
 
   localStorage.setItem(nameKey, nameInput.value);
   nameInput.focus();
-});
-
-clearButton.addEventListener("click", () => {
-  const shouldClear = confirm("確定要清空所有留言嗎？");
-
-  if (!shouldClear) {
-    return;
-  }
-
-  messages = [];
-  saveMessages();
-  renderMessages();
 });
 
 function loadMessages() {

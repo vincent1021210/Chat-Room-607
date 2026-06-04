@@ -232,20 +232,6 @@ svg {
   background: #98a2b3;
 }
 
-.danger-button {
-  margin-top: auto;
-  min-height: 42px;
-  border: 1px solid rgba(180, 35, 24, 0.28);
-  border-radius: 8px;
-  background: rgba(180, 35, 24, 0.08);
-  color: var(--danger);
-  font-weight: 700;
-}
-
-.danger-button:hover {
-  background: rgba(180, 35, 24, 0.14);
-}
-
 .chat-panel {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
@@ -402,10 +388,6 @@ svg {
 
   .room-list {
     display: none;
-  }
-
-  .danger-button {
-    margin-top: 0;
   }
 
   .chat-header,

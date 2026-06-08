@@ -1,6 +1,6 @@
 const storageKey = "chat-board-messages";
 const nameKey = "chat-board-name";
-const sheetWebAppUrl = "";
+const sheetWebAppUrl = "https://script.google.com/macros/s/AKfycbwUu7IZCM4sIvI4eKPXUUvp5s67gvad5xW6q7B0LkwmS6SU2GnQItq8EaG_WgVcWj0fRg/exec";
 const sheetSyncedKey = "chat-board-sheet-synced-ids";
 
 const messagesEl = document.querySelector("#messages");

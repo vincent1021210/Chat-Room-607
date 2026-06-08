@@ -1,6 +1,7 @@
 const storageKey = "chat-board-messages";
 const nameKey = "chat-board-name";
 const sheetWebAppUrl = "";
+const sheetSyncedKey = "chat-board-sheet-synced-ids";
 
 const messagesEl = document.querySelector("#messages");
 const form = document.querySelector("#messageForm");
@@ -29,6 +30,7 @@ clearMessagesByNumberFromUrl();
 nameInput.value = localStorage.getItem(nameKey) || "";
 updateComposerState();
 renderMessages();
+syncMessagesToSheet(messages);
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -58,7 +60,7 @@ form.addEventListener("submit", (event) => {
   messages.push(message);
 
   saveMessages();
-  registerMessageToSheet(message);
+  syncMessagesToSheet([message]);
   input.value = "";
   resizeComposer();
   renderMessages();
@@ -126,8 +128,15 @@ function saveMessages() {
   localStorage.setItem(storageKey, JSON.stringify(messages));
 }
 
-function registerMessageToSheet(message) {
+function syncMessagesToSheet(messagesToSync) {
   if (!sheetWebAppUrl) {
+    return;
+  }
+
+  const syncedIds = loadSyncedMessageIds();
+  const unsyncedMessages = messagesToSync.filter((message) => message.id && !syncedIds.has(message.id));
+
+  if (!unsyncedMessages.length) {
     return;
   }
 
@@ -138,11 +147,30 @@ function registerMessageToSheet(message) {
       "Content-Type": "text/plain;charset=utf-8",
     },
     body: JSON.stringify({
-      timestamp: message.createdAt,
-      nickname: message.author,
-      message: message.text,
+      messages: unsyncedMessages.map((message) => ({
+        id: message.id,
+        timestamp: message.createdAt,
+        nickname: message.author,
+        message: message.text,
+      })),
     }),
   });
+
+  unsyncedMessages.forEach((message) => syncedIds.add(message.id));
+  saveSyncedMessageIds(syncedIds);
+}
+
+function loadSyncedMessageIds() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(sheetSyncedKey) || "[]");
+    return new Set(Array.isArray(saved) ? saved : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function saveSyncedMessageIds(syncedIds) {
+  localStorage.setItem(sheetSyncedKey, JSON.stringify([...syncedIds]));
 }
 
 function renderMessages() {

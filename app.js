@@ -1,5 +1,6 @@
 const storageKey = "chat-board-messages";
 const nameKey = "chat-board-name";
+const sheetWebAppUrl = "";
 
 const messagesEl = document.querySelector("#messages");
 const form = document.querySelector("#messageForm");
@@ -46,15 +47,18 @@ form.addEventListener("submit", (event) => {
 
   localStorage.setItem(nameKey, author);
 
-  messages.push({
+  const message = {
     id: crypto.randomUUID(),
     author,
     text,
     createdAt: new Date().toISOString(),
     mine: true,
-  });
+  };
+
+  messages.push(message);
 
   saveMessages();
+  registerMessageToSheet(message);
   input.value = "";
   resizeComposer();
   renderMessages();
@@ -120,6 +124,25 @@ function clearMessagesByNumberFromUrl() {
 
 function saveMessages() {
   localStorage.setItem(storageKey, JSON.stringify(messages));
+}
+
+function registerMessageToSheet(message) {
+  if (!sheetWebAppUrl) {
+    return;
+  }
+
+  fetch(sheetWebAppUrl, {
+    method: "POST",
+    mode: "no-cors",
+    headers: {
+      "Content-Type": "text/plain;charset=utf-8",
+    },
+    body: JSON.stringify({
+      timestamp: message.createdAt,
+      nickname: message.author,
+      message: message.text,
+    }),
+  });
 }
 
 function renderMessages() {

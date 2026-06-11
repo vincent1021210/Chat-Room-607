@@ -1,7 +1,6 @@
 const storageKey = "chat-board-messages";
 const nameKey = "chat-board-name";
-const sheetWebAppUrl = "https://script.google.com/macros/s/AKfycbwUu7IZCM4sIvI4eKPXUUvp5s67gvad5xW6q7B0LkwmS6SU2GnQItq8EaG_WgVcWj0fRg/exec";
-const sheetSyncedKey = "chat-board-sheet-synced-ids";
+const sheetWebAppUrl = "https://script.google.com/macros/s/AKfycbzIDLpiqAwg2rTBqis4B-ZH-yXJZ57pSuZ5JQo-47CXeFh-JkIz4xgISf-p9vW_sMnjgg/exec";
 
 const messagesEl = document.querySelector("#messages");
 const form = document.querySelector("#messageForm");
@@ -133,10 +132,9 @@ function syncMessagesToSheet(messagesToSync) {
     return;
   }
 
-  const syncedIds = loadSyncedMessageIds();
-  const unsyncedMessages = messagesToSync.filter((message) => message.id && !syncedIds.has(message.id));
+  const syncableMessages = messagesToSync.filter((message) => message.id);
 
-  if (!unsyncedMessages.length) {
+  if (!syncableMessages.length) {
     return;
   }
 
@@ -147,30 +145,16 @@ function syncMessagesToSheet(messagesToSync) {
       "Content-Type": "text/plain;charset=utf-8",
     },
     body: JSON.stringify({
-      messages: unsyncedMessages.map((message) => ({
+      messages: syncableMessages.map((message) => ({
         id: message.id,
         timestamp: message.createdAt,
         nickname: message.author,
         message: message.text,
       })),
     }),
+  }).catch((error) => {
+    console.error("Google Sheet sync failed:", error);
   });
-
-  unsyncedMessages.forEach((message) => syncedIds.add(message.id));
-  saveSyncedMessageIds(syncedIds);
-}
-
-function loadSyncedMessageIds() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(sheetSyncedKey) || "[]");
-    return new Set(Array.isArray(saved) ? saved : []);
-  } catch {
-    return new Set();
-  }
-}
-
-function saveSyncedMessageIds(syncedIds) {
-  localStorage.setItem(sheetSyncedKey, JSON.stringify([...syncedIds]));
 }
 
 function renderMessages() {

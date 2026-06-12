@@ -1,12 +1,41 @@
 const storageKey = "chat-board-messages";
 const nameKey = "chat-board-name";
 const sheetWebAppUrl = "https://script.google.com/macros/s/AKfycbzIDLpiqAwg2rTBqis4B-ZH-yXJZ57pSuZ5JQo-47CXeFh-JkIz4xgISf-p9vW_sMnjgg/exec";
+const classmates = [
+  ["1號", "劉士弘"],
+  ["2號", "郭哲瑜"],
+  ["3號", "黃上恩"],
+  ["4號", "邱思齊"],
+  ["5號", "陳宥辰"],
+  ["6號", "楊宇杰"],
+  ["7號", "張軒凱"],
+  ["8號", "邱德榮"],
+  ["9號", "張久軒"],
+  ["10號", "蘇昱誠"],
+  ["11號", "秦紹軒"],
+  ["12號", "陳庭豪"],
+  ["13號", "蔡博任"],
+  ["14號", "張祐實"],
+  ["15號", "廖品筑"],
+  ["16號", "李垣萱"],
+  ["17號", "姚宥寧"],
+  ["18號", "錢瑋婕"],
+  ["19號", "陳亞歆"],
+  ["20號", "許為婷"],
+  ["21號", "連曼晴"],
+  ["22號", "諶顥云"],
+  ["23號", "賴暐璇"],
+  ["24號", "林詠淇"],
+  ["25號", "陳宥瑄"],
+  ["27號", "張恩僑"],
+];
 
 const messagesEl = document.querySelector("#messages");
 const form = document.querySelector("#messageForm");
 const input = document.querySelector("#messageInput");
 const nameInput = document.querySelector("#displayName");
 const nameHint = document.querySelector("#nameHint");
+const messageStatus = document.querySelector("#messageStatus");
 const saveNameButton = document.querySelector("#saveName");
 const messageCount = document.querySelector("#messageCount");
 const sendButton = document.querySelector(".send-button");
@@ -24,6 +53,7 @@ const defaultMessages = [
 
 let messages = loadMessages();
 
+populateNameOptions();
 clearMessagesFromUrl();
 clearMessagesByNumberFromUrl();
 nameInput.value = localStorage.getItem(nameKey) || "";
@@ -42,11 +72,14 @@ form.addEventListener("submit", (event) => {
   }
 
   if (!text) {
+    setMessageStatus("請先寫下留言內容。", true);
     input.focus();
     return;
   }
 
   localStorage.setItem(nameKey, author);
+  setMessageStatus("正在把留言送到聊天室與 Google Sheet。");
+  sendButton.disabled = true;
 
   const message = {
     id: crypto.randomUUID(),
@@ -63,6 +96,9 @@ form.addEventListener("submit", (event) => {
   input.value = "";
   resizeComposer();
   renderMessages();
+  setMessageStatus("已送出。");
+  window.setTimeout(() => setMessageStatus(""), 1800);
+  sendButton.disabled = false;
 });
 
 input.addEventListener("input", resizeComposer);
@@ -86,8 +122,23 @@ saveNameButton.addEventListener("click", () => {
   }
 
   localStorage.setItem(nameKey, nameInput.value);
+  setMessageStatus("暱稱已儲存。");
   nameInput.focus();
 });
+
+function populateNameOptions() {
+  const placeholder = document.createElement("option");
+  placeholder.value = "";
+  placeholder.textContent = "請選擇暱稱";
+  nameInput.replaceChildren(placeholder);
+
+  classmates.forEach(([number, name]) => {
+    const option = document.createElement("option");
+    option.value = `${number}：${name}`;
+    option.textContent = `${number}：${name}`;
+    nameInput.append(option);
+  });
+}
 
 function loadMessages() {
   try {
@@ -239,5 +290,11 @@ function updateComposerState() {
 
 function showNameError() {
   updateComposerState();
+  setMessageStatus("請先選擇暱稱。", true);
   nameInput.focus();
+}
+
+function setMessageStatus(text, isError = false) {
+  messageStatus.textContent = text;
+  messageStatus.classList.toggle("error", isError);
 }

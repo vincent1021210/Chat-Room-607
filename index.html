@@ -26,39 +26,7 @@
         <div class="profile-panel">
           <label for="displayName">你的暱稱</label>
           <div class="name-row">
-            <select
-              id="displayName"
-              aria-describedby="nameHint"
-              required
-            >
-              <option value="">請選擇暱稱</option>
-              <option value="1號：劉士弘">1號：劉士弘</option>
-              <option value="2號：郭哲瑜">2號：郭哲瑜</option>
-              <option value="3號：黃上恩">3號：黃上恩</option>
-              <option value="4號：邱思齊">4號：邱思齊</option>
-              <option value="5號：陳宥辰">5號：陳宥辰</option>
-              <option value="6號：楊宇杰">6號：楊宇杰</option>
-              <option value="7號：張軒凱">7號：張軒凱</option>
-              <option value="8號：邱德榮">8號：邱德榮</option>
-              <option value="9號：張久軒">9號：張久軒</option>
-              <option value="10號：蘇昱誠">10號：蘇昱誠</option>
-              <option value="11號：秦紹軒">11號：秦紹軒</option>
-              <option value="12號：陳庭豪">12號：陳庭豪</option>
-              <option value="13號：蔡博任">13號：蔡博任</option>
-              <option value="14號：張祐實">14號：張祐實</option>
-              <option value="15號：廖品筑">15號：廖品筑</option>
-              <option value="16號：李垣萱">16號：李垣萱</option>
-              <option value="17號：姚宥寧">17號：姚宥寧</option>
-              <option value="18號：錢瑋婕">18號：錢瑋婕</option>
-              <option value="19號：陳亞歆">19號：陳亞歆</option>
-              <option value="20號：許為婷">20號：許為婷</option>
-              <option value="21號：連曼晴">21號：連曼晴</option>
-              <option value="22號：諶顥云">22號：諶顥云</option>
-              <option value="23號：賴暐璇">23號：賴暐璇</option>
-              <option value="24號：林詠淇">24號：林詠淇</option>
-              <option value="25號：陳宥瑄">25號：陳宥瑄</option>
-              <option value="27號：張恩僑">27號：張恩僑</option>
-            </select>
+            <select id="displayName" aria-describedby="nameHint" required></select>
             <button id="saveName" class="icon-button" type="button" aria-label="儲存暱稱" title="儲存暱稱">
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z" />
@@ -82,6 +50,12 @@
             <small>唯讀</small>
           </button>
         </div>
+
+        <section class="sync-card" aria-label="同步狀態">
+          <p class="sync-label">資料同步</p>
+          <strong>Google Sheet 留言紀錄</strong>
+          <p id="sheetHint">送出後會同步寫入班級試算表。</p>
+        </section>
       </section>
 
       <section class="chat-panel" aria-label="留言板">
@@ -89,29 +63,35 @@
           <div>
             <p class="eyebrow">Public Room</p>
             <h2>公開留言</h2>
+            <p class="chat-subtitle">依照畢業紀念冊留言板的送出方式，整理成對話流聊天室。</p>
           </div>
           <div class="status">
             <span aria-hidden="true"></span>
-            本機儲存
+            已連接試算表
           </div>
         </header>
 
         <div id="messages" class="messages" aria-live="polite"></div>
 
         <form id="messageForm" class="composer">
-          <textarea
-            id="messageInput"
-            maxlength="500"
-            rows="1"
-            placeholder="輸入留言..."
-            aria-label="留言內容"
-          ></textarea>
-          <button class="send-button" type="submit" aria-label="送出留言" title="送出留言">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="m22 2-7 20-4-9-9-4Z" />
-              <path d="M22 2 11 13" />
-            </svg>
-          </button>
+          <div class="composer-main">
+            <textarea
+              id="messageInput"
+              maxlength="500"
+              rows="1"
+              placeholder="寫一句想留給大家的話..."
+              aria-label="留言內容"
+            ></textarea>
+            <div class="composer-meta">
+              <p id="messageStatus" class="message-status" aria-live="polite"></p>
+              <button class="send-button" type="submit" aria-label="送出留言" title="送出留言">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m22 2-7 20-4-9-9-4Z" />
+                  <path d="M22 2 11 13" />
+                </svg>
+              </button>
+            </div>
+          </div>
         </form>
       </section>
     </main>

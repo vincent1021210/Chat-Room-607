@@ -2,7 +2,7 @@ const SPREADSHEET_ID = "1GE44VNCVqCBPj94hdIXzMP4l4YK4DRLPkdWLAIwkDr0";
 const SHEET_NAME = "留言紀錄";
 
 function doPost(e) {
-  const payload = JSON.parse(e.postData.contents || "{}");
+  const payload = getPayload(e);
   const sheet = getSheet();
   const existingIds = getExistingMessageIds(sheet);
   const messages = Array.isArray(payload.messages) ? payload.messages : [payload];
@@ -26,6 +26,14 @@ function doPost(e) {
   return ContentService
     .createTextOutput(JSON.stringify({ ok: true }))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+function getPayload(e) {
+  const formPayload = e && e.parameter ? e.parameter.payload : "";
+  const rawPayload = e && e.postData ? e.postData.contents : "";
+  const source = formPayload || rawPayload || "{}";
+
+  return JSON.parse(source);
 }
 
 function getSheet() {

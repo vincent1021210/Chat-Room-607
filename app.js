@@ -138,23 +138,41 @@ function syncMessagesToSheet(messagesToSync) {
     return;
   }
 
-  fetch(sheetWebAppUrl, {
-    method: "POST",
-    mode: "no-cors",
-    headers: {
-      "Content-Type": "text/plain;charset=utf-8",
-    },
-    body: JSON.stringify({
-      messages: syncableMessages.map((message) => ({
-        id: message.id,
-        timestamp: message.createdAt,
-        nickname: message.author,
-        message: message.text,
-      })),
-    }),
-  }).catch((error) => {
-    console.error("Google Sheet sync failed:", error);
+  postMessagesToSheet({
+    messages: syncableMessages.map((message) => ({
+      id: message.id,
+      timestamp: message.createdAt,
+      nickname: message.author,
+      message: message.text,
+    })),
   });
+}
+
+function postMessagesToSheet(payload) {
+  const iframe = document.createElement("iframe");
+  const form = document.createElement("form");
+  const input = document.createElement("input");
+  const frameName = `sheet-sync-${Date.now()}`;
+
+  iframe.name = frameName;
+  iframe.hidden = true;
+
+  form.action = sheetWebAppUrl;
+  form.method = "POST";
+  form.target = frameName;
+  form.hidden = true;
+
+  input.name = "payload";
+  input.value = JSON.stringify(payload);
+
+  form.append(input);
+  document.body.append(iframe, form);
+  form.submit();
+
+  window.setTimeout(() => {
+    iframe.remove();
+    form.remove();
+  }, 1500);
 }
 
 function renderMessages() {

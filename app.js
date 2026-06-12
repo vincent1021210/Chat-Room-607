@@ -1,4 +1,3 @@
-const storageKey = "chat-board-messages";
 const nameKey = "chat-board-name";
 const sheetWebAppUrl = "https://script.google.com/macros/s/AKfycbzIDLpiqAwg2rTBqis4B-ZH-yXJZ57pSuZ5JQo-47CXeFh-JkIz4xgISf-p9vW_sMnjgg/exec";
 const classmates = [
@@ -40,18 +39,9 @@ const saveNameButton = document.querySelector("#saveName");
 const messageCount = document.querySelector("#messageCount");
 const sendButton = document.querySelector(".send-button");
 const template = document.querySelector("#messageTemplate");
+const sheetRefreshMs = 8000;
 
-const defaultMessages = [
-  {
-    id: crypto.randomUUID(),
-    author: "系統",
-    text: "歡迎來到留言板。輸入暱稱與內容，就可以開始聊天式留言。",
-    createdAt: new Date().toISOString(),
-    mine: false,
-  },
-];
-
-let messages = loadMessages();
+let messages = [];
 
 populateNameOptions();
 clearMessagesFromUrl();
@@ -59,7 +49,8 @@ clearMessagesByNumberFromUrl();
 nameInput.value = localStorage.getItem(nameKey) || "";
 updateComposerState();
 renderMessages();
-syncMessagesToSheet(messages);
+syncMessagesFromSheet();
+window.setInterval(syncMessagesFromSheet, sheetRefreshMs);
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -90,8 +81,6 @@ form.addEventListener("submit", (event) => {
   };
 
   messages.push(message);
-
-  saveMessages();
   syncMessagesToSheet([message]);
   input.value = "";
   resizeComposer();
@@ -140,15 +129,6 @@ function populateNameOptions() {
   });
 }
 
-function loadMessages() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(storageKey) || "[]");
-    return Array.isArray(saved) && saved.length ? saved : [...defaultMessages];
-  } catch {
-    return [...defaultMessages];
-  }
-}
-
 function clearMessagesFromUrl() {
   const params = new URLSearchParams(window.location.search);
 
@@ -157,7 +137,6 @@ function clearMessagesFromUrl() {
   }
 
   messages = [];
-  saveMessages();
   window.history.replaceState({}, "", window.location.pathname);
 }
 
@@ -170,12 +149,7 @@ function clearMessagesByNumberFromUrl() {
   }
 
   messages = messages.filter((message) => !message.author.startsWith(`${number}號：`));
-  saveMessages();
   window.history.replaceState({}, "", window.location.pathname);
-}
-
-function saveMessages() {
-  localStorage.setItem(storageKey, JSON.stringify(messages));
 }
 
 function syncMessagesToSheet(messagesToSync) {
@@ -197,6 +171,45 @@ function syncMessagesToSheet(messagesToSync) {
       message: message.text,
     })),
   });
+}
+
+function syncMessagesFromSheet() {
+  if (!sheetWebAppUrl) {
+    return;
+  }
+
+  const callbackName = `sheetSyncCallback_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+  const script = document.createElement("script");
+  const separator = sheetWebAppUrl.includes("?") ? "&" : "?";
+
+  window[callbackName] = (payload) => {
+    try {
+      mergeMessagesFromSheet(payload && Array.isArray(payload.messages) ? payload.messages : []);
+    } finally {
+      delete window[callbackName];
+      script.remove();
+    }
+  };
+
+  script.src = `${sheetWebAppUrl}${separator}callback=${callbackName}`;
+  script.onerror = () => {
+    delete window[callbackName];
+    script.remove();
+  };
+
+  document.body.append(script);
+}
+
+function mergeMessagesFromSheet(remoteMessages) {
+  const localById = new Map(messages.filter((message) => message.id).map((message) => [message.id, message]));
+  messages = remoteMessages
+    .filter((message) => !isSystemWelcomeMessage(message))
+    .map((message) => ({
+    ...message,
+    mine: localById.get(message.id)?.mine ?? message.author === normalizeName(nameInput.value),
+    }))
+    .sort((left, right) => new Date(left.createdAt) - new Date(right.createdAt));
+  renderMessages();
 }
 
 function postMessagesToSheet(payload) {
@@ -257,8 +270,12 @@ function renderMessages() {
     fragment.append(node);
   });
 
+  const wasNearBottom = messagesEl.scrollHeight - messagesEl.scrollTop - messagesEl.clientHeight < 60;
   messagesEl.append(fragment);
-  messagesEl.scrollTop = messagesEl.scrollHeight;
+
+  if (wasNearBottom || messages.length <= 2) {
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
 }
 
 function normalizeName(name) {
@@ -297,4 +314,11 @@ function showNameError() {
 function setMessageStatus(text, isError = false) {
   messageStatus.textContent = text;
   messageStatus.classList.toggle("error", isError);
+}
+
+function isSystemWelcomeMessage(message) {
+  return (
+    message.author === "系統" &&
+    message.text === "歡迎來到留言板。輸入暱稱與內容，就可以開始聊天式留言。"
+  );
 }
